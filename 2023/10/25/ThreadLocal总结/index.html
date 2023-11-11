@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ThreadLocal总结 | justBeWind的博客</title><meta name="author" content="justBeWind"><meta name="copyright" content="justBeWind"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="ThreadLocal内存泄漏ThreadLocalMap 中使用的 key 为 ThreadLocal 的弱引用，而 value 是强引用。所以，如果 ThreadLocal 没有被外部强引用的情况下，在垃圾回收的时候，key 会被清理掉，而 value 不会被清理掉。 这样一来，ThreadLocalMap 中就会出现 key 为 null 的 Entry。假如我们不做任何措施的话，value">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ThreadLocal总结">
+<meta property="og:url" content="http://example.com/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="justBeWind的博客">
+<meta property="og:description" content="ThreadLocal内存泄漏ThreadLocalMap 中使用的 key 为 ThreadLocal 的弱引用，而 value 是强引用。所以，如果 ThreadLocal 没有被外部强引用的情况下，在垃圾回收的时候，key 会被清理掉，而 value 不会被清理掉。 这样一来，ThreadLocalMap 中就会出现 key 为 null 的 Entry。假如我们不做任何措施的话，value">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg">
+<meta property="article:published_time" content="2023-10-25T13:11:30.000Z">
+<meta property="article:modified_time" content="2023-10-25T13:21:55.043Z">
+<meta property="article:author" content="justBeWind">
+<meta property="article:tag" content="Java并发">
+<meta property="article:tag" content="ThreadLocal">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ThreadLocal总结',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2023-10-25 21:21:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="justBeWind的博客"><span class="site-name">justBeWind的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">ThreadLocal总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-25T13:11:30.000Z" title="发表于 2023-10-25 21:11:30">2023-10-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-25T13:21:55.043Z" title="更新于 2023-10-25 21:21:55">2023-10-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ThreadLocal总结"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="ThreadLocal内存泄漏"><a href="#ThreadLocal内存泄漏" class="headerlink" title="ThreadLocal内存泄漏"></a>ThreadLocal内存泄漏</h2><p><strong><code>ThreadLocalMap</code> 中使用的 key 为 <code>ThreadLocal</code> 的弱引用，而 value 是强引用</strong>。所以，如果 <code>ThreadLocal</code> 没有被外部强引用的情况下，在垃圾回收的时候，key 会被清理掉，而 value 不会被清理掉。</p>
+<p>这样一来，<code>ThreadLocalMap</code> 中就会出现 key 为 null 的 Entry。假如我们不做任何措施的话，value 永远无法被 GC 回收，这个时候就可能会产生内存泄露。<code>ThreadLocalMap</code> 实现中已经考虑了这种情况，在调用 <code>set()</code>、<code>get()</code>、<code>remove()</code> 方法的时候，会清理掉 key 为 null 的记录。使用完 <code>ThreadLocal</code>方法后最好手动调用<code>remove()</code>方法</p>
+<p>这段话，可能会有如下疑问</p>
+<blockquote>
+<p>为什么在<code>ThreadLocalMap</code>  如果不做任何措施，value会永远无法被GC回收？</p>
+</blockquote>
+<p><code>ThreadLocalMap</code>使用弱引用（WeakReference）来存储<code>ThreadLocal</code>对象，但它使用强引用来存储实际的值（value）。这就导致了一个潜在的内存泄漏问题。</p>
+<p>当<code>ThreadLocal</code>实例不再被引用，即无法从程序的根引用链（例如，静态变量或活动线程引用）中访问它时，<code>ThreadLocalMap</code>中对应的<code>ThreadLocal</code>对象会被垃圾回收。但是，与之关联的值（value）却不会被释放，因为它们被强引用所持有。</p>
+<p>举个例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Example</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ThreadLocal&lt;Integer&gt; threadLocal = <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        threadLocal.set(<span class="number">42</span>);</span><br><span class="line">        <span class="comment">// 不再引用 threadLocal</span></span><br><span class="line">        threadLocal = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 在这里，threadLocal 对象会被垃圾回收</span></span><br><span class="line">        <span class="comment">// 但对应的值 42 不会被释放，因为 ThreadLocalMap 中还保持着对它的引用</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，当<code>threadLocal</code>在<code>main</code>方法中被设为<code>null</code>后，<code>threadLocal</code>对象成为了不可达对象，因此可以被垃圾回收。然而，<code>ThreadLocalMap</code>中仍然保留着对<code>threadLocal</code>的弱引用，而与之关联的值 42 却是强引用，因此值 42 不会被释放。</p>
+<p>为了解决这个问题，可以在不需要使用<code>ThreadLocal</code>的时候，显式调用<code>remove</code>方法，将其从<code>ThreadLocalMap</code>中移除。这会触发<code>ThreadLocalMap</code>中对应条目的清理。</p>
+<blockquote>
+<p>那么又是怎么看出value是强引用，而不是弱引用呢？</p>
+</blockquote>
+<p>在<code>ThreadLocalMap</code>中，<code>Entry</code>是一个静态内部类，负责存储<code>ThreadLocal</code>和对应的值。在OpenJDK的实现中，<code>Entry</code>的定义如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">class</span> <span class="title class_">Entry</span> <span class="keyword">extends</span> <span class="title class_">WeakReference</span>&lt;ThreadLocal&lt;?&gt;&gt; &#123;</span><br><span class="line">    <span class="comment">/** The value associated with this ThreadLocal. */</span></span><br><span class="line">    Object value;</span><br><span class="line"></span><br><span class="line">    Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;</span><br><span class="line">        <span class="built_in">super</span>(k);</span><br><span class="line">        value = v;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意到<code>value</code>字段的定义是<code>Object</code>类型，而不是<code>WeakReference</code>。这就意味着，<code>value</code>是直接引用了实际存储的对象，而不是使用弱引用包装。</p>
+<h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>主要解决的就是让每个线程绑定自己的值，可以将<code>ThreadLocal</code>类形象的比喻成存放数据的盒子，盒子中可以存储每个线程的私有数据<strong>。</strong></p>
+<p>如果你创建了一个<code>ThreadLocal</code>变量，那么访问这个变量的每个线程<strong>都会有这个变量的本地副本</strong>，这也是<code>ThreadLocal</code>变量名的由来。他们可以使用 <code>get()</code> 和 <code>set()</code> 方法来获取默认值或将其值更改为当前线程所存的副本的值，从而避免了线程安全问题。</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p><code>ThreadLocal</code>类的<code>set()</code>方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">set</span><span class="params">(T value)</span> &#123;</span><br><span class="line">    <span class="comment">//获取当前请求的线程</span></span><br><span class="line">    <span class="type">Thread</span> <span class="variable">t</span> <span class="operator">=</span> Thread.currentThread();</span><br><span class="line">    <span class="comment">//取出 Thread 类内部的 threadLocals 变量(哈希表结构)</span></span><br><span class="line">    <span class="type">ThreadLocalMap</span> <span class="variable">map</span> <span class="operator">=</span> getMap(t);</span><br><span class="line">    <span class="keyword">if</span> (map != <span class="literal">null</span>)</span><br><span class="line">        <span class="comment">// 将需要存储的值放入到这个哈希表中</span></span><br><span class="line">        map.set(<span class="built_in">this</span>, value);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        createMap(t, value);</span><br><span class="line">&#125;</span><br><span class="line">ThreadLocalMap <span class="title function_">getMap</span><span class="params">(Thread t)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> t.threadLocals;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过猜测得出结论：<strong>最终的变量是放在了当前线程的</strong> <strong><code>ThreadLocalMap</code></strong> <strong>中，并不是存在</strong> <strong><code>ThreadLocal</code></strong> <strong>上，</strong><code>ThreadLocal</code> <strong>可以理解为只是</strong><code>ThreadLocalMap</code><strong>的封装，传递了变量值。</strong> <code>ThrealLocal</code> 类中可以通过<code>Thread.currentThread()</code>获取到当前线程对象后，直接通过<code>getMap(Thread t)</code>可以访问到该线程的<code>ThreadLocalMap</code>对象。</p>
+<blockquote>
+<p><code>Thread</code> 类中有一个 <code>threadLocals</code> 和 一个 <code>inheritableThreadLocals</code> 变量，它们都是 <code>ThreadLocalMap</code> 类型的变量,我们可以把 <code>ThreadLocalMap</code> 理解为<code>ThreadLocal</code> 类实现的定制化的 <code>HashMap</code>。默认情况下这两个变量都是 null，只有当前线程调用 <code>ThreadLocal</code> 类的 <code>set</code>或<code>get</code>方法时才创建它们</p>
+</blockquote>
+<p>每个<code>Thread</code>中都具备一个<code>ThreadLocalMap</code>，而<code>ThreadLocalMap</code>可以存储以<code>ThreadLocal</code>为 key ，Object 对象为 value 的键值对。</p>
+<p><code>ThreadLocal</code> 数据结构如下图所示：</p>
+<p><img src="/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/16982395172631.png" alt="img"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">justBeWind</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/">http://example.com/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">justBeWind的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Java%E5%B9%B6%E5%8F%91/">Java并发</a><a class="post-meta__tags" href="/tags/ThreadLocal/">ThreadLocal</a></div><div class="post_share"><div class="social-share" data-image="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/10/27/%E8%87%AA%E7%94%A8tpora-markdown%E8%AF%AD%E6%B3%95%E6%80%BB%E7%BB%93/" title="自用tpora + markdown语法总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">自用tpora + markdown语法总结</div></div></a></div><div class="next-post pull-right"><a href="/2023/10/24/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E6%80%BB%E7%BB%93/" title="乐观锁和悲观锁总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">乐观锁和悲观锁总结</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/" title="Synchronized总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-27</div><div class="title">Synchronized总结</div></div></a></div><div><a href="/2023/10/24/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E6%80%BB%E7%BB%93/" title="乐观锁和悲观锁总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-24</div><div class="title">乐观锁和悲观锁总结</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">justBeWind</div><div class="author-info__description">何其光，同其尘</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://gitee.com/justBeWind"><i class="fab fa-github"></i><span>关注我</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的世界</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#ThreadLocal%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">ThreadLocal内存泄漏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%9C%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">原理</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/11/Java%E9%9B%86%E5%90%88%EF%BC%9A%E7%BA%BF%E7%A8%8B%E4%B8%8D%E5%AE%89%E5%85%A8%E7%AF%87/" title="Java集合：线程不安全篇">Java集合：线程不安全篇</a><time datetime="2023-11-11T13:43:44.000Z" title="发表于 2023-11-11 21:43:44">2023-11-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/07/Spring-Boot%E9%A1%B9%E7%9B%AE%E5%90%8D%E7%A7%B0%E4%BF%AE%E6%94%B9%E6%96%B9%E6%B3%95%E8%AE%B0%E5%BD%95/" title="Spring Boot项目名称修改方法记录">Spring Boot项目名称修改方法记录</a><time datetime="2023-11-07T14:23:27.000Z" title="发表于 2023-11-07 22:23:27">2023-11-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/31/%E5%88%86%E5%B8%83%E5%BC%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/" title="分布式算法总结">分布式算法总结</a><time datetime="2023-10-31T03:40:34.000Z" title="发表于 2023-10-31 11:40:34">2023-10-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/30/%E5%B9%BF%E5%B7%9E%E5%AE%9D%E8%97%8F%E5%B0%8F%E5%BA%97/" title="广州宝藏小店">广州宝藏小店</a><time datetime="2023-10-30T14:20:04.000Z" title="发表于 2023-10-30 22:20:04">2023-10-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/29/%E6%85%A2%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E6%8E%A2%E7%B4%A2/" title="慢查询优化探索">慢查询优化探索</a><time datetime="2023-10-29T13:50:28.000Z" title="发表于 2023-10-29 21:50:28">2023-10-29</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By justBeWind</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(()=>{
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      onCommentLoaded: function () {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+  }
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(function (res) {
+      countELement.textContent = res[0].count
+    }).catch(function (err) {
+      console.error(err);
+    });
+  }
+
+  const runFn = () => {
+    init()
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') {
+      setTimeout(runFn,0)
+      return
+    } 
+    getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(runFn)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = () => {
+      loadTwikoo()
+    }
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

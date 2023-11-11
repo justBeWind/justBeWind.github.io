@@ -1,0 +1,268 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Synchronized总结 | justBeWind的博客</title><meta name="author" content="justBeWind"><meta name="copyright" content="justBeWind"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="概念synchronized主要解决的是多个线程之间访问资源的同步性，可以保证被它修饰的方法或者代码块在任意时刻只能有一个线程执行。 使用方式1、修饰实例方法 （锁当前对象实例） 给当前对象实例加锁，进入同步代码前要获得 当前对象实例的锁 。 123synchronized void method() &amp;#123;    &#x2F;&#x2F;业务代码&amp;#125;  2、修饰静态方法 （锁当前类） 给当前类加锁，会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Synchronized总结">
+<meta property="og:url" content="http://example.com/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/index.html">
+<meta property="og:site_name" content="justBeWind的博客">
+<meta property="og:description" content="概念synchronized主要解决的是多个线程之间访问资源的同步性，可以保证被它修饰的方法或者代码块在任意时刻只能有一个线程执行。 使用方式1、修饰实例方法 （锁当前对象实例） 给当前对象实例加锁，进入同步代码前要获得 当前对象实例的锁 。 123synchronized void method() &amp;#123;    &#x2F;&#x2F;业务代码&amp;#125;  2、修饰静态方法 （锁当前类） 给当前类加锁，会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg">
+<meta property="article:published_time" content="2023-10-27T08:48:30.000Z">
+<meta property="article:modified_time" content="2023-10-27T09:11:26.580Z">
+<meta property="article:author" content="justBeWind">
+<meta property="article:tag" content="Synchronized">
+<meta property="article:tag" content="Java并发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Synchronized总结',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2023-10-27 17:11:26'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="justBeWind的博客"><span class="site-name">justBeWind的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Synchronized总结</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-27T08:48:30.000Z" title="发表于 2023-10-27 16:48:30">2023-10-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-27T09:11:26.580Z" title="更新于 2023-10-27 17:11:26">2023-10-27</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Synchronized总结"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><code>synchronized</code>主要解决的是多个线程之间访问资源的同步性，可以保证被它修饰的方法或者代码块在任意时刻只能有一个线程执行。</p>
+<h2 id="使用方式"><a href="#使用方式" class="headerlink" title="使用方式"></a>使用方式</h2><p><strong>1、修饰实例方法</strong> （锁当前对象实例）</p>
+<p>给当前对象实例加锁，进入同步代码前要获得 <strong>当前对象实例的锁</strong> 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">method</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、修饰静态方法</strong> （锁当前类）</p>
+<p>给当前类加锁，会作用于类的所有对象实例 ，进入同步代码前要获得 <strong>当前 class 的锁</strong>。</p>
+<p>这是因为静态成员不属于任何一个实例对象，归整个类所有，不依赖于类的特定实例，被类的所有实例共享。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">method</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3、修饰代码块</strong> （锁指定对象&#x2F;类）</p>
+<p>对括号里指定的对象&#x2F;类加锁：</p>
+<ul>
+<li><code>synchronized(object)</code> 表示进入同步代码库前要获得 <strong>给定对象的锁</strong>。</li>
+<li><code>synchronized(类.class)</code> 表示进入同步代码前要获得 <strong>给定 Class 的锁</strong></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span>(<span class="built_in">this</span>) &#123;</span><br><span class="line">    <span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>构造方法不能使用 synchronized 关键字修饰。</strong></p>
+<h2 id="如何保证线程安全"><a href="#如何保证线程安全" class="headerlink" title="如何保证线程安全"></a>如何保证线程安全</h2><p>分三个方面回答：加锁和释放锁的原理，可重入原理，保证可见性原理。</p>
+<h3 id="加锁和释放锁的原理"><a href="#加锁和释放锁的原理" class="headerlink" title="加锁和释放锁的原理"></a>加锁和释放锁的原理</h3><h4 id="synchronized-同步语句块的情况"><a href="#synchronized-同步语句块的情况" class="headerlink" title="synchronized 同步语句块的情况"></a>synchronized 同步语句块的情况</h4><p>深入JVM看字节码(反编译看monitor指令)</p>
+<p><img src="/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/java-thread-x-key-schronized-x1.png" alt="img"></p>
+<p><code>synchronized</code> 同步语句块的实现使用的是 <code>monitorenter</code> 和 <code>monitorexit</code> 指令，其中 <code>monitorenter</code> 指令指向同步代码块的开始位置，<code>monitorexit</code> 指令则指明同步代码块的结束位置。</p>
+<p>上面的字节码中包含一个 <code>monitorenter</code> 指令以及两个 <code>monitorexit</code> 指令，这是为了保证锁在同步代码块代码正常执行以及出现异常的这两种情况下都能被正确释放。</p>
+<p>当执行 <code>monitorenter</code> 指令时，线程试图获取锁也就是获取 <strong>对象监视器 <code>monitor</code></strong> 的持有权。如果锁的计数器为 0 则表示锁可以被获取，获取后将锁计数器设为 1 也就是加 1。</p>
+<p>对象锁的的拥有者线程才可以执行 <code>monitorexit</code> 指令来释放锁。在执行 <code>monitorexit</code> 指令后，将锁计数器设为 0，表明锁被释放，其他线程可以尝试获取锁。 如果获取对象锁失败，那么当前线程就要阻塞等待。</p>
+<h4 id="synchronized-修饰方法的的情况"><a href="#synchronized-修饰方法的的情况" class="headerlink" title="synchronized 修饰方法的的情况"></a>synchronized 修饰方法的的情况</h4><p><code>synchronized</code> 修饰的方法并没有 <code>monitorenter</code> 指令和 <code>monitorexit</code> 指令，<u>取得代之的是 <code>ACC_SYNCHRONIZED</code> 标识</u>，该标识指明了该方法是一个同步方法。JVM 通过该 <code>ACC_SYNCHRONIZED</code> 访问标志来辨别一个方法是否声明为同步方法，从而执行相应的同步调用。</p>
+<p>如果是实例方法，JVM 会尝试获取实例对象的锁。如果是静态方法，JVM 会尝试获取当前 class 的锁</p>
+<h3 id="可重入原理：加锁次数计数器"><a href="#可重入原理：加锁次数计数器" class="headerlink" title="可重入原理：加锁次数计数器"></a>可重入原理：加锁次数计数器</h3><p>Synchronized的重入性，即在<strong>同一锁程</strong>中，每个对象拥有一个monitor计数器，当线程获取该对象锁后，monitor计数器就会加一，释放锁后就会将monitor计数器减一，线程不需要再次获取同一把锁。</p>
+<h3 id="保证可见性的原理：内存模型和happens-before规则"><a href="#保证可见性的原理：内存模型和happens-before规则" class="headerlink" title="保证可见性的原理：内存模型和happens-before规则"></a>保证可见性的原理：内存模型和happens-before规则</h3><p>Synchronized的happens-before规则，即监视器锁规则：对同一个监视器的解锁，happens-before于对该监视器的加锁</p>
+<h2 id="jdk1-6后synchronized的优化"><a href="#jdk1-6后synchronized的优化" class="headerlink" title="jdk1.6后synchronized的优化"></a>jdk1.6后synchronized的优化</h2><p><strong>在jdk1.6中对锁的实现引入了大量的优化，如锁粗化(Lock Coarsening)、锁消除(Lock Elimination)、轻量级锁(Lightweight Locking)、偏向锁(Biased Locking)、适应性自旋(Adaptive Spinning)等技术来减少锁操作的开销</strong>。</p>
+<p><code>锁粗化(Lock Coarsening)</code>：也就是减少不必要的紧连在一起的unlock，lock操作，<strong>将多个连续的锁扩展成一个范围更大的锁。</strong></p>
+<p><code>锁消除(Lock Elimination)</code>：通过运行时JIT编译器的<strong>逃逸分析来消除一些没有在当前同步块以外被其他线程共享的数据的锁保护</strong>，通过逃逸分析也可以在线程本的Stack上进行对象空间的分配(同时还可以减少Heap上的垃圾收集开销)。</p>
+<p><code>轻量级锁(Lightweight Locking)</code>：这种锁实现的背后基于这样一种假设，即在真实的情况下我们程序中的大部分同步代码一般都处于无锁竞争状态(即单线程执行环境)，在无锁竞争的情况下完全可以避免调用操作系统层面的重量级互斥锁，取而代之的是在monitorenter和monitorexit中<strong>只需要依靠一条CAS原子指令就可以完成锁的获取及释放</strong>。当存在锁竞争的情况下，执行CAS指令失败的线程将调用操作系统互斥锁进入到阻塞状态，当锁被释放的时候被唤醒。</p>
+<p><code>偏向锁(Biased Locking)</code>：是为了在无锁竞争的情况下避免在锁获取过程中执行不必要的CAS原子指令，因为CAS原子指令虽然相对于重量级锁来说开销比较小但还是存在非常可观的本地延迟。<strong>所以当其他线程尝试获取偏向锁时，持有偏向锁的线程才会释放锁。</strong></p>
+<p><code>适应性自旋(Adaptive Spinning)</code>：当线程在获取轻量级锁的过程中执行CAS操作失败时，在进入与monitor相关联的操作系统重量级锁(mutex semaphore)前会进入忙等待(Spinning)然后再次尝试，当尝试一定的次数后如果仍然没有成功则调用与该monitor关联的semaphore(即互斥锁)进入到阻塞状态。<strong>自旋的时间不再固定，避免浪费处理器资源</strong></p>
+<h2 id="synchronized与其他的对比"><a href="#synchronized与其他的对比" class="headerlink" title="synchronized与其他的对比"></a>synchronized与其他的对比</h2><h3 id="synchronized与Lock"><a href="#synchronized与Lock" class="headerlink" title="synchronized与Lock"></a>synchronized与Lock</h3><ul>
+<li><code>效率低</code>：锁的释放情况少，只有代码执行完毕或者异常结束才会释放锁；试图获取锁的时候不能设定超时，不能中断一个正在使用锁的线程，相对而言，Lock可以中断和设置超时</li>
+<li><code>不够灵活</code>：加锁和释放的时机单一，每个锁仅有一个单一的条件(某个对象)，相对而言，读写锁更加灵活</li>
+<li><code>无法知道是否成功获得锁</code>，相对而言，Lock可以拿到状态，如果成功获取锁，….，如果获取失败，…..</li>
+</ul>
+<h3 id="synchronized-和-volatile-有什么区别？"><a href="#synchronized-和-volatile-有什么区别？" class="headerlink" title="synchronized 和 volatile 有什么区别？"></a>synchronized 和 volatile 有什么区别？</h3><p><code>synchronized</code> 关键字和 <code>volatile</code> 关键字是两个互补的存在，而不是对立的存在！</p>
+<ul>
+<li><code>volatile</code> 关键字是线程同步的轻量级实现，所以 <code>volatile</code>性能肯定比<code>synchronized</code>关键字要好 。但是 <code>volatile</code> 关键字只能用于变量而 <code>synchronized</code> 关键字可以修饰方法以及代码块 。</li>
+<li><code>volatile</code> 关键字能保证数据的可见性，但不能保证数据的原子性。<code>synchronized</code> 关键字两者都能保证。</li>
+<li><code>volatile</code>关键字主要用于解决变量在多个线程之间的可见性，而 <code>synchronized</code> 关键字解决的是多个线程之间访问资源的同步性。</li>
+</ul>
+<h2 id="synchronized-的注意事项"><a href="#synchronized-的注意事项" class="headerlink" title="synchronized 的注意事项"></a>synchronized 的注意事项</h2><ul>
+<li>锁对象不能为空，因为锁的信息都保存在对象头里</li>
+<li>作用域不宜过大，影响程序执行的速度，控制范围过大，编写代码也容易出错</li>
+<li>避免死锁</li>
+<li>在能选择的情况下，既不要用Lock也不要用synchronized关键字，用java.util.concurrent包中的各种各样的类，如果不用该包下的类，在满足业务的情况下，可以使用synchronized关键，因为代码量少，避免出错</li>
+</ul>
+<h2 id="公平锁or非公平锁"><a href="#公平锁or非公平锁" class="headerlink" title="公平锁or非公平锁"></a>公平锁or非公平锁</h2><p>synchronized实际上是<strong>非公平</strong>的，新来的线程有可能立即获得监视器，而在等待区中等候已久的线程可能再次等待，这样有利于提高性能，但是也可能会导致饥饿现象。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://example.com">justBeWind</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/">http://example.com/2023/10/27/Synchronized%E6%80%BB%E7%BB%93/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">justBeWind的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Synchronized/">Synchronized</a><a class="post-meta__tags" href="/tags/Java%E5%B9%B6%E5%8F%91/">Java并发</a></div><div class="post_share"><div class="social-share" data-image="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/10/28/%E5%87%A4%E5%87%B0%E6%9E%B6%E6%9E%84%EF%BC%9A%E6%BC%94%E8%BF%9B%E4%B8%AD%E7%9A%84%E6%9E%B6%E6%9E%84%E8%AF%BB%E5%90%8E%E6%84%9F/" title="凤凰架构：演进中的架构读后感"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">凤凰架构：演进中的架构读后感</div></div></a></div><div class="next-post pull-right"><a href="/2023/10/27/%E8%87%AA%E7%94%A8tpora-markdown%E8%AF%AD%E6%B3%95%E6%80%BB%E7%BB%93/" title="自用tpora + markdown语法总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">自用tpora + markdown语法总结</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/10/25/ThreadLocal%E6%80%BB%E7%BB%93/" title="ThreadLocal总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-25</div><div class="title">ThreadLocal总结</div></div></a></div><div><a href="/2023/10/24/%E4%B9%90%E8%A7%82%E9%94%81%E5%92%8C%E6%82%B2%E8%A7%82%E9%94%81%E6%80%BB%E7%BB%93/" title="乐观锁和悲观锁总结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-10-24</div><div class="title">乐观锁和悲观锁总结</div></div></a></div></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">justBeWind</div><div class="author-info__description">何其光，同其尘</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://gitee.com/justBeWind"><i class="fab fa-github"></i><span>关注我</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的世界</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="toc-number">2.</span> <span class="toc-text">使用方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="toc-number">3.</span> <span class="toc-text">如何保证线程安全</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E9%94%81%E5%92%8C%E9%87%8A%E6%94%BE%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">3.1.</span> <span class="toc-text">加锁和释放锁的原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#synchronized-%E5%90%8C%E6%AD%A5%E8%AF%AD%E5%8F%A5%E5%9D%97%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">3.1.1.</span> <span class="toc-text">synchronized 同步语句块的情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#synchronized-%E4%BF%AE%E9%A5%B0%E6%96%B9%E6%B3%95%E7%9A%84%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-number">3.1.2.</span> <span class="toc-text">synchronized 修饰方法的的情况</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E9%87%8D%E5%85%A5%E5%8E%9F%E7%90%86%EF%BC%9A%E5%8A%A0%E9%94%81%E6%AC%A1%E6%95%B0%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="toc-number">3.2.</span> <span class="toc-text">可重入原理：加锁次数计数器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E8%AF%81%E5%8F%AF%E8%A7%81%E6%80%A7%E7%9A%84%E5%8E%9F%E7%90%86%EF%BC%9A%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E5%92%8Chappens-before%E8%A7%84%E5%88%99"><span class="toc-number">3.3.</span> <span class="toc-text">保证可见性的原理：内存模型和happens-before规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#jdk1-6%E5%90%8Esynchronized%E7%9A%84%E4%BC%98%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">jdk1.6后synchronized的优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized%E4%B8%8E%E5%85%B6%E4%BB%96%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="toc-number">5.</span> <span class="toc-text">synchronized与其他的对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#synchronized%E4%B8%8ELock"><span class="toc-number">5.1.</span> <span class="toc-text">synchronized与Lock</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#synchronized-%E5%92%8C-volatile-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">5.2.</span> <span class="toc-text">synchronized 和 volatile 有什么区别？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized-%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.</span> <span class="toc-text">synchronized 的注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AC%E5%B9%B3%E9%94%81or%E9%9D%9E%E5%85%AC%E5%B9%B3%E9%94%81"><span class="toc-number">7.</span> <span class="toc-text">公平锁or非公平锁</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/11/Java%E9%9B%86%E5%90%88%EF%BC%9A%E7%BA%BF%E7%A8%8B%E4%B8%8D%E5%AE%89%E5%85%A8%E7%AF%87/" title="Java集合：线程不安全篇">Java集合：线程不安全篇</a><time datetime="2023-11-11T13:43:44.000Z" title="发表于 2023-11-11 21:43:44">2023-11-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/07/Spring-Boot%E9%A1%B9%E7%9B%AE%E5%90%8D%E7%A7%B0%E4%BF%AE%E6%94%B9%E6%96%B9%E6%B3%95%E8%AE%B0%E5%BD%95/" title="Spring Boot项目名称修改方法记录">Spring Boot项目名称修改方法记录</a><time datetime="2023-11-07T14:23:27.000Z" title="发表于 2023-11-07 22:23:27">2023-11-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/31/%E5%88%86%E5%B8%83%E5%BC%8F%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93/" title="分布式算法总结">分布式算法总结</a><time datetime="2023-10-31T03:40:34.000Z" title="发表于 2023-10-31 11:40:34">2023-10-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/30/%E5%B9%BF%E5%B7%9E%E5%AE%9D%E8%97%8F%E5%B0%8F%E5%BA%97/" title="广州宝藏小店">广州宝藏小店</a><time datetime="2023-10-30T14:20:04.000Z" title="发表于 2023-10-30 22:20:04">2023-10-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/29/%E6%85%A2%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E6%8E%A2%E7%B4%A2/" title="慢查询优化探索">慢查询优化探索</a><time datetime="2023-10-29T13:50:28.000Z" title="发表于 2023-10-29 21:50:28">2023-10-29</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By justBeWind</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(()=>{
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      onCommentLoaded: function () {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+  }
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(function (res) {
+      countELement.textContent = res[0].count
+    }).catch(function (err) {
+      console.error(err);
+    });
+  }
+
+  const runFn = () => {
+    init()
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') {
+      setTimeout(runFn,0)
+      return
+    } 
+    getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(runFn)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = () => {
+      loadTwikoo()
+    }
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
