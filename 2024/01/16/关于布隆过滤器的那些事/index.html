@@ -1,0 +1,251 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>关于布隆过滤器的那些事 | justBeWind的博客</title><meta name="author" content="justBeWind"><meta name="copyright" content="justBeWind"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="布隆过滤器的简介布隆过滤器（Bloom Filter）是 1970 年由布隆提出的。它实际上是一个很长的二进制向量和一系列随机映射函数。布隆过滤器可以用于检索一个元素是否在一个集合中。它的优点是空间效率和查询时间都比一般的算法要好的多，缺点是有一定的误识别率和删除困难。 布隆过滤器的原理根据定义，布隆过滤器可以检查值是 “可能在集合中” 还是 “绝对不在集合中”。“可能” 表示有一定的概率，也就是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于布隆过滤器的那些事">
+<meta property="og:url" content="http://justbewind.github.io/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/index.html">
+<meta property="og:site_name" content="justBeWind的博客">
+<meta property="og:description" content="布隆过滤器的简介布隆过滤器（Bloom Filter）是 1970 年由布隆提出的。它实际上是一个很长的二进制向量和一系列随机映射函数。布隆过滤器可以用于检索一个元素是否在一个集合中。它的优点是空间效率和查询时间都比一般的算法要好的多，缺点是有一定的误识别率和删除困难。 布隆过滤器的原理根据定义，布隆过滤器可以检查值是 “可能在集合中” 还是 “绝对不在集合中”。“可能” 表示有一定的概率，也就是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg">
+<meta property="article:published_time" content="2024-01-16T08:39:16.000Z">
+<meta property="article:modified_time" content="2024-01-16T09:08:10.857Z">
+<meta property="article:author" content="justBeWind">
+<meta property="article:tag" content="布隆过滤器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://justbewind.github.io/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '关于布隆过滤器的那些事',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: true,
+  isToc: true,
+  postUpdate: '2024-01-16 17:08:10'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">31</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="justBeWind的博客"><span class="site-name">justBeWind的博客</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fa fa-heartbeat"></i><span> 清单</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">关于布隆过滤器的那些事</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-01-16T08:39:16.000Z" title="发表于 2024-01-16 16:39:16">2024-01-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-01-16T09:08:10.857Z" title="更新于 2024-01-16 17:08:10">2024-01-16</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="关于布隆过滤器的那些事"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div><article class="post-content" id="article-container"><h2 id="布隆过滤器的简介"><a href="#布隆过滤器的简介" class="headerlink" title="布隆过滤器的简介"></a>布隆过滤器的简介</h2><p>布隆过滤器（Bloom Filter）是 1970 年由布隆提出的。它实际上是一个很长的二进制向量和一系列随机映射函数。布隆过滤器可以<u>用于检索一个元素是否在一个集合中</u>。<strong>它的优点是空间效率和查询时间都比一般的算法要好的多，缺点是有一定的误识别率和删除困难</strong>。</p>
+<h2 id="布隆过滤器的原理"><a href="#布隆过滤器的原理" class="headerlink" title="布隆过滤器的原理"></a>布隆过滤器的原理</h2><p>根据定义，布隆过滤器可以检查值是 <strong>“可能在集合中”</strong> 还是 <strong>“绝对不在集合中”</strong>。“可能” 表示有一定的概率，也就是说可能存在一定为误判率。</p>
+<p>那么，容易让人感到困惑的是，为什么说布隆过滤器存在着误判的情况呢？</p>
+<p>下面让我们来跟着例子分析一下：</p>
+<p>布隆过滤器（Bloom Filter）本质上是由长度为 m 的位向量或位列表（仅包含 0 或 1 位值的列表）组成，最初所有的值均设置为 0，如下图所示。</p>
+<p><img src="/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/v2-3590d269c6cd9d5be764b4bc79335da5_720w.webp" alt="img"></p>
+<p>为了将数据项添加到布隆过滤器中，我们会提供 K 个不同的哈希函数，并将结果位置上对应位的值置为 “1”。</p>
+<p><img src="/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/v2-8c28b1d5990396202a05430bde51511b_720w.webp" alt="img"></p>
+<p>如上图所示，当输入 “semlinker” 时，预设的 3 个哈希函数将输出 2、4、6，我们把相应位置 1。假设另一个输入 ”kakuqo“，哈希函数输出 3、4 和 7。你可能已经注意到，索引位 4 已经被先前的 “semlinker” 标记了。</p>
+<p><img src="/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/v2-9cfe294a29af4209e476fccfae466d7d_720w.webp" alt="img"></p>
+<p>所以，目前布隆过滤器中值为1的位置分别有：2、3、4、6、7</p>
+<p>当对值进行搜索时，与哈希表类似，我们将使用 3 个哈希函数对 ”搜索的值“ 进行哈希运算，并查看其生成的索引值。假设，当我们搜索 ”fullstack“ 时，3 个哈希函数输出的 3 个索引值分别是 2、3 和 7：</p>
+<p><img src="/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/v2-9a3dec489430cffd38b310c33242bf51_720w.webp" alt="img"></p>
+<p>从上图可以看出，相应的索引位都被置为 1，这意味着我们可以说 ”fullstack“ <strong>可能已经插入</strong>到集合中。事实上这是误报的情形，产生的原因是由于哈希碰撞导致的巧合而将不同的元素存储在相同的比特位上。</p>
+<p>通过上面的例子，可以得出一个结论：<strong>当我们搜索一个值的时候，若该值经过 K 个哈希函数运算后的任何一个索引位为 ”0“，那么该值肯定不在集合中。但如果所有哈希索引值均为 ”1“，则只能说该搜索的值可能存在集合中</strong>。</p>
+<blockquote>
+<p>上述的例子和图片来源：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/94433082">5 分钟搞懂布隆过滤器，亿级数据过滤算法你值得拥有！ - 知乎 (zhihu.com)</a></p>
+</blockquote>
+<h2 id="布隆过滤器的注意事项"><a href="#布隆过滤器的注意事项" class="headerlink" title="布隆过滤器的注意事项"></a>布隆过滤器的注意事项</h2><p>布隆过滤器想要用好，有以下几个点需要注意： </p>
+<ol>
+<li><p>误判率：布隆过滤器主要是通过多次 Hash 方式确定元素是否存在或不存在，所以存在一定的误判率，而这个误判率也导致绝大多数场景无法使用。 </p>
+</li>
+<li><p>无法删除：布隆过滤器因为是 Hash 方式确定元素，所以并不能删除，因为可能会影响多个元素。 </p>
+</li>
+<li><p>定义初始化容量：在初始化布隆过滤器时，预估好业务对应的体量，可以一定程度上杜绝误判率。因为当容量越大，误判率越低。</p>
+</li>
+</ol>
+<h2 id="布隆过滤器的使用场景"><a href="#布隆过滤器的使用场景" class="headerlink" title="布隆过滤器的使用场景"></a>布隆过滤器的使用场景</h2><ul>
+<li>在用户注册的时候判断用户名是否已经存在了。可能有的人会说，如果布隆过滤器误判了这个用户名已经存在了怎么办，其实对于注册的这个场景，这种误判带来的影响几乎可以忽略不计，假如用户想注册aa这个名字，误判了，用户只需要简单换一个即可。</li>
+<li>网页爬虫对URL的去重，避免爬取相同的URL地址</li>
+<li>使用布隆过滤器避免推荐给用户已经读过的文章；同样这里的误判，只会误以为这个文章已经用户被读过，导致该文章不能推荐给用户，但是并不影响用户的推荐体验。</li>
+<li>在数据库内核场景中，使用布隆过滤器减少对不存在的行和列的查找。</li>
+<li>解决缓存穿透的问题。当业务系统有查询请求的时候，首先去BloomFilter中查询该key是否存在。若不存在，则说明数据库中也不存在该数据，因此缓存都不要查了，直接返回null。若存在，则继续执行后续的流程，先前往缓存中查询，缓存中没有的话再前往数据库中的查询。</li>
+</ul>
+<blockquote>
+<p>缓存穿透：当请求数据库中不存在的数据，这时候所有的请求都会打到数据库上，这种情况就是缓存穿透。如果当请求较多的话，这将会严重浪费数据库资源甚至导致数据库假死。</p>
+</blockquote>
+<h2 id="实战"><a href="#实战" class="headerlink" title="实战"></a>实战</h2><p>布隆过滤器在项目中的使用，笔者目前利用redisson中的实现比较多，这里给出官方文档的地址：<a target="_blank" rel="noopener" href="https://github.com/redisson/redisson/wiki/6.-%E5%88%86%E5%B8%83%E5%BC%8F%E5%AF%B9%E8%B1%A1#68-%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8bloom-filter">6. 分布式对象 · redisson&#x2F;redisson Wiki (github.com)</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://justbewind.github.io/">justBeWind</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://justbewind.github.io/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/">http://justbewind.github.io/2024/01/16/关于布隆过滤器的那些事/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://justbewind.github.io" target="_blank">justBeWind的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/">布隆过滤器</a></div><div class="post_share"><div class="social-share" data-image="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/12/19/mybatisPlus-%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%BB%93/" title="mybatisPlus 使用小结"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">mybatisPlus 使用小结</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="twikoo-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://z1.ax1x.com/2023/10/02/pPLbF9s.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">justBeWind</div><div class="author-info__description">何其光，同其尘</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">31</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://gitee.com/justBeWind"><i class="fab fa-github"></i><span>关注我</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的世界</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">布隆过滤器的简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">布隆过滤器的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">3.</span> <span class="toc-text">布隆过滤器的注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">布隆过滤器的使用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98"><span class="toc-number">5.</span> <span class="toc-text">实战</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/01/16/%E5%85%B3%E4%BA%8E%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E7%9A%84%E9%82%A3%E4%BA%9B%E4%BA%8B/" title="关于布隆过滤器的那些事">关于布隆过滤器的那些事</a><time datetime="2024-01-16T08:39:16.000Z" title="发表于 2024-01-16 16:39:16">2024-01-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/19/mybatisPlus-%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%BB%93/" title="mybatisPlus 使用小结">mybatisPlus 使用小结</a><time datetime="2023-12-19T12:58:23.000Z" title="发表于 2023-12-19 20:58:23">2023-12-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/15/MySQL%E6%97%A5%E5%BF%97%E6%95%B4%E7%90%86/" title="MySQL日志整理">MySQL日志整理</a><time datetime="2023-12-15T13:45:58.000Z" title="发表于 2023-12-15 21:45:58">2023-12-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/09/%E7%AE%97%E6%B3%95%E5%A4%8D%E7%9B%98%EF%BC%9A%E5%B1%B1%E8%84%89%E6%95%B0%E7%BB%84/" title="算法复盘：山脉数组">算法复盘：山脉数组</a><time datetime="2023-12-09T14:14:17.000Z" title="发表于 2023-12-09 22:14:17">2023-12-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/19/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%AC%94%E8%AE%B0/" title="设计模式笔记">设计模式笔记</a><time datetime="2023-11-19T14:53:37.000Z" title="发表于 2023-11-19 22:53:37">2023-11-19</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By justBeWind</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>(()=>{
+  const init = () => {
+    twikoo.init(Object.assign({
+      el: '#twikoo-wrap',
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      onCommentLoaded: function () {
+        btf.loadLightbox(document.querySelectorAll('#twikoo .tk-content img:not(.tk-owo-emotion)'))
+      }
+    }, null))
+  }
+
+  const getCount = () => {
+    const countELement = document.getElementById('twikoo-count')
+    if(!countELement) return
+    twikoo.getCommentsCount({
+      envId: 'https://my-twikoo-ipkud44xf-justbewind.vercel.app',
+      region: '',
+      urls: [window.location.pathname],
+      includeReply: false
+    }).then(function (res) {
+      countELement.textContent = res[0].count
+    }).catch(function (err) {
+      console.error(err);
+    });
+  }
+
+  const runFn = () => {
+    init()
+    GLOBAL_CONFIG_SITE.isPost && getCount()
+  }
+
+  const loadTwikoo = () => {
+    if (typeof twikoo === 'object') {
+      setTimeout(runFn,0)
+      return
+    } 
+    getScript('https://cdn.jsdelivr.net/npm/twikoo/dist/twikoo.all.min.js').then(runFn)
+  }
+
+  if ('Twikoo' === 'Twikoo' || !true) {
+    if (true) btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)
+    else loadTwikoo()
+  } else {
+    window.loadOtherComment = () => {
+      loadTwikoo()
+    }
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
